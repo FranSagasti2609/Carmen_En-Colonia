@@ -67,3 +67,8 @@ target_link_libraries(FINAL_TEST ${GTKMM_LIBRARIES} sqlite3)
 include_directories(${SQLite3_INCLUDE_DIR})
 target_link_libraries(FINAL_TEST ${GTKMM_LIBRARIES} ${SQLite3_LIBRARY})
 
+# para el icono
+if (WIN32)
+    # Añadir el archivo de recursos solo para Windows
+    set(SOURCES ${SOURCES} resources.rc)
+endif()

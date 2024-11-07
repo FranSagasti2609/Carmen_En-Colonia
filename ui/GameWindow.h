@@ -7,7 +7,7 @@
 #include "../Models/Usuario.h"
 #include "../DAO/PistaDAO.h"
 #include "../DataBaseHandler.h"
-
+class GameController;
 class GameWindow : public Gtk::Window {
 public:
     // Cambiar el tipo de `database_handler` a `std::shared_ptr<DatabaseHandler>`
@@ -17,7 +17,7 @@ public:
     void iniciarJuego();
     void iniciarNuevoJuego();
 
-    void actualizarLabelRango();
+    void actualizarLabelRango(const Usuario& usuario_actualizado);
 
     void mostrarDialogoRango(const std::string &nuevoRango);
 

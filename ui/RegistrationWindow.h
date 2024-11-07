@@ -8,11 +8,15 @@
 #include <gtkmm/box.h>
 #include <memory>
 #include "../Controller/GameController.h"
-#include "GameWindow.h"
+#include "../DatabaseHandler.h"
+#include <functional>
 
 class RegistrationWindow : public Gtk::ApplicationWindow {
 public:
-    explicit RegistrationWindow(std::shared_ptr<GameController> game_controller, std::shared_ptr<DatabaseHandler> dbHandler);
+    RegistrationWindow(std::shared_ptr<GameController> game_controller,
+                       std::shared_ptr<DatabaseHandler> db_handler,
+                       std::function<void()> closeParentWindow);
+
     virtual ~RegistrationWindow() = default;
 
 private:
@@ -23,6 +27,7 @@ private:
     // Variables de miembro
     std::shared_ptr<GameController> game_controller;
     std::shared_ptr<DatabaseHandler> dbHandler;
+    std::function<void()> closeParentWindow;
 
     Gtk::Entry entry_username;
     Gtk::Entry entry_apellido;

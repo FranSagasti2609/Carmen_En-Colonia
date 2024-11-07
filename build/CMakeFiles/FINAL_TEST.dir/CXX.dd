@@ -1,0 +1,45 @@
+ninja_dyndep_version = 1.0
+build CMakeFiles/FINAL_TEST.dir/main.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Usuario.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Localidad.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Mision.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Secuaz.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Rango.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Pista.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Detective.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/UsuarioDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DataBaseHandler.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/BaseDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/PistaDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/LocalidadDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/MisionDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/PartidaDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Models/Partida.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/DAO/SecuazDAO.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/ui/RegistrationWindow.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Controller/GameController.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/ui/CarouselWindow.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/ui/GameWindow.cpp.obj: dyndep
+
+build CMakeFiles/FINAL_TEST.dir/Controller/Globals.cpp.obj: dyndep
+

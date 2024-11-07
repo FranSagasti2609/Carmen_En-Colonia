@@ -103,7 +103,7 @@ void GameController::reiniciarJuego() {
     localidad_actual = obtenerLocalidadAleatoria(); // Restablece la localidad actual
 }
 
-void GameController::finalizarJuego() {
+void GameController::finalizarJuego(GameWindow* gameWindow) {
     // Crear el diálogo de mensaje de fin de juego
     Gtk::MessageDialog *messageDialog = new Gtk::MessageDialog("Te has quedado sin intentos de viajes, casi los tenías!",
                                                                false, Gtk::MessageType::INFO, Gtk::ButtonsType::NONE, true);
@@ -115,9 +115,9 @@ void GameController::finalizarJuego() {
 
     // Conectar la respuesta del usuario al botón "Salir"
     messageDialog->signal_response().connect(
-       [messageDialog](int response_id) {
+       [messageDialog, gameWindow](int response_id) {
            if (response_id == Gtk::ResponseType::CLOSE) {
-               Gtk::Application::get_default()->quit(); // Salir de la aplicación
+               gameWindow->close(); // Cerrar directamente la ventana de juego
            }
            // Destruir el diálogo después de manejar la respuesta
            messageDialog->hide();

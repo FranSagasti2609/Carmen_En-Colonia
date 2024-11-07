@@ -20,7 +20,7 @@ GameWindow::GameWindow(const std::shared_ptr<GameController>& game_controller, s
     Gtk::Box* hbox_rango = Gtk::manage(new Gtk::Box(Gtk::Orientation::HORIZONTAL, 200));
 
     // Texto del rango
-    actualizarLabelRango();
+    actualizarLabelRango(controller->obtenerUsuario());
     hbox_rango->append(label_rango);
 
     // Configuración de intentos
@@ -75,13 +75,14 @@ void GameWindow::mostrarIntroduccion() {
     mensaje_completo = oss.str();
     mensaje_actual.clear();
     indice_tipeo = 0;
-    Glib::signal_timeout().connect(sigc::mem_fun(*this, &GameWindow::efectoTipeo), 100);
+    Glib::signal_timeout().connect(sigc::mem_fun(*this, &GameWindow::efectoTipeo), 50);
 }
 
 bool GameWindow::efectoTipeo() {
     if (indice_tipeo < mensaje_completo.size()) {
         mensaje_actual += mensaje_completo[indice_tipeo++];
-        label_introduccion.set_text(mensaje_actual);
+        label_introduccion.set_use_markup(true);
+        label_introduccion.set_markup(mensaje_actual);
         return true;
     } else {
         iniciarJuego();
@@ -145,8 +146,13 @@ void GameWindow::seleccionarPista(int indice) {
                     }
                     // Actualiza el rango del detective
                     controller->actualizarRango();
+                    Usuario usuario_actualizado = controller->obtenerUsuario();
+                    actualizarLabelRango(usuario_actualizado);
+
                     std::string nuevoRango = controller->obtenerRangoDetective().getNombre();
                     mostrarDialogoRango(nuevoRango);  // Muestra el mensaje de rango actualizado
+
+
                 } else {
                     // Si no alcanza la racha de 3, el secuaz se mueve de localidad y se generan nuevas pistas
                     localidad_objetivo = controller->obtenerLocalidadAleatoria();  // Actualiza la nueva ubicación del secuaz
@@ -168,7 +174,7 @@ void GameWindow::seleccionarPista(int indice) {
                 delete dialog; // Eliminar el diálogo correctamente
 
                 if (intentos_actuales == 0) {
-                    controller->finalizarJuego();
+                    controller->finalizarJuego(this);
                 }
             });
             dialog->show(); // Mostrar el diálogo
@@ -185,15 +191,17 @@ void GameWindow::mostrarPistas(const std::vector<Pista>& pistas) {
     for (size_t i = 0; i < pistas.size(); ++i) {
         if (i < letras.size()) {
             std::ostringstream pista_con_letra;
-            pista_con_letra << letras[i] << ": " << pistas[i].getDescripcion();
+            pista_con_letra << "<span font='11' weight='bold'>" << letras[i] << ": " << pistas[i].getDescripcion() << "</span>";
 
-            Gtk::Label* label_pista = Gtk::manage(new Gtk::Label(pista_con_letra.str()));
+            Gtk::Label* label_pista = Gtk::manage(new Gtk::Label());
+            label_pista->set_use_markup(true);  // Habilita el uso de markup
+            label_pista->set_markup(pista_con_letra.str());
             vbox_pistas.append(*label_pista);
         }
     }
-
     vbox_pistas.show();
 }
+
 
 // Implementación de limpiarContenedor
 void GameWindow::limpiarContenedor(Gtk::Box& contenedor) {
@@ -225,18 +233,17 @@ void GameWindow::iniciarNuevoJuego() {
     mostrarIntroduccion();  // Muestra la introducción para el nuevo secuaz
 }
 
-void GameWindow::actualizarLabelRango() {
-    Usuario usuario = controller->obtenerUsuario();
+void GameWindow::actualizarLabelRango(const Usuario& usuario_actualizado) {
     std::ostringstream oss;
-    oss << "Detective: " << usuario.getNombre() << " | Rango: " << usuario.getRango().getNombre();
+    oss << "Detective: " << usuario_actualizado.getNombre() << " | Rango: " << usuario_actualizado.getRango().getNombre();
     label_rango.set_text(oss.str());
 }
+
 
 void GameWindow::mostrarDialogoRango(const std::string& nuevoRango) {
     Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Rango Aumentado!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
     dialog->set_secondary_text("¡Felicidades! Ahora eres " + nuevoRango + ".");
     dialog->signal_response().connect([this, dialog](int) {
-        actualizarLabelRango();  // Actualiza el label después de cerrar el diálogo
         dialog->hide();
         delete dialog;
     });

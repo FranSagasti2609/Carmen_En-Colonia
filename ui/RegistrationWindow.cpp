@@ -1,13 +1,15 @@
 #include "RegistrationWindow.h"
 #include "../DAO/UsuarioDAO.h"
-#include "../DatabaseHandler.h"
 #include "../Models/Usuario.h"
-#include "../Controller/Globals.h"
 #include <iostream>
 
+#include "../Controller/Globals.h"
+
 // Constructor
-RegistrationWindow::RegistrationWindow(std::shared_ptr<GameController> game_controller, std::shared_ptr<DatabaseHandler> dbHandler)
-    : game_controller(std::move(game_controller)), dbHandler(std::move(dbHandler)) {
+RegistrationWindow::RegistrationWindow(std::shared_ptr<GameController> game_controller,
+                                       std::shared_ptr<DatabaseHandler> db_handler,
+                                       std::function<void()> closeParentWindow)
+    : game_controller(game_controller), dbHandler(db_handler), closeParentWindow(closeParentWindow) {
 
     set_title("Registro o Login");
     set_default_size(400, 200);
@@ -57,12 +59,13 @@ void RegistrationWindow::login_success() {
     if (usuario) {
         game_controller->setUsuario(usuario.value());
         std::cout << "El juego comenzará, detective " << usuario->getNombre() << std::endl;
-        is_logged_in = true;
+
+        closeParentWindow(); // Llama al callback que cierra CarouselWindow
+        is_logged_in = true; //habilito variable para gestion del main
     } else {
         actualizar_estado("Credenciales incorrectas");
     }
 }
-
 
 void RegistrationWindow::actualizar_estado(const std::string& mensaje) {
     label_status.set_text(mensaje);

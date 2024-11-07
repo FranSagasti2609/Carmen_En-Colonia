@@ -8,9 +8,10 @@
 #include "../DAO/LocalidadDAO.h"
 #include "../Models/Usuario.h"
 #include "../Models/Detective.h"  // Asegúrate de incluir la cabecera de Detective
+#include "../ui/GameWindow.h"
 #include <set>
 
-
+class GameWindow;
 enum GameState { INICIO, EN_PROGRESO, FINALIZADO };
 
 class GameController {
@@ -29,7 +30,7 @@ public:
 
     //Gestionar reinicio y finalizacion
     void reiniciarJuego();
-    void finalizarJuego();
+    void finalizarJuego(GameWindow* gameWindow);
 
     Localidad obtenerLocalidadAleatoria();
     Secuaz obtenerSecuazAleatorio();
