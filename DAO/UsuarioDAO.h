@@ -15,7 +15,7 @@ public:
     bool registrarUsuario(const std::string& nombre, const std::string& apellido, const std::string& contrasena);
     std::optional<Usuario> autenticarUsuario(const std::string& nombre,const std::string& apellido, const std::string& contrasena);
     bool actualizarRangoUsuario(int idUsuario, const std::string& nuevoRango); //modificar rango en la db
-
+    bool incrementarCapturas(int usuarioId);
 private:
     DatabaseHandler& dbHandler;
 };

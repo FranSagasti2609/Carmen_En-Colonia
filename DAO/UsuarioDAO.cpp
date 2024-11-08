@@ -94,3 +94,24 @@ bool UsuarioDAO::actualizarRangoUsuario(int idUsuario, const std::string& nuevoR
     return true;
 }
 
+bool UsuarioDAO::incrementarCapturas(int usuarioId) {
+    sqlite3_stmt* stmt;
+    const std::string sql = "UPDATE usuarios SET capturas = capturas + 1 WHERE id = ?";
+
+    if (sqlite3_prepare_v2(dbHandler.getDb(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Error al preparar la actualización de capturas: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, usuarioId);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Error al actualizar las capturas del usuario: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
+}
+

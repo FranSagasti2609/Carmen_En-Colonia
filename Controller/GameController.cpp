@@ -123,10 +123,7 @@ void GameController::finalizarJuego(GameWindow* gameWindow) {
 
 void GameController::marcarSecuazComoCapturado(int secuaz_id) {
     secuaces_capturados.insert(secuaz_id);  // Agrega el ID del secuaz capturado
-    for (auto secuaz : secuaces_capturados) {
-        std::cout << secuaz << " ";
-    }
-    std::cout << std::endl;
+    usuarioDAO->incrementarCapturas(jugador.getId());
 }
 
 bool GameController::haySecuacesDisponibles() const {

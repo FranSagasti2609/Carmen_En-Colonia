@@ -47668,6 +47668,9 @@ private:
 public:
 
     Usuario() : id(0), capturas(0), rango("Junior") {}
+    Usuario(int id, const std::string& nombre, const std::string& apellido, int capturas)
+       : id(id), nombre(nombre), apellido(apellido), capturas(capturas) {}
+
     Usuario(int id, const std::string& nombre, const std::string& apellido);
     Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango);
 
@@ -47677,6 +47680,7 @@ public:
     int getCapturas() const { return capturas; }
     const std::string& getNombre() const { return nombre; }
     const std::string& getApellido() const { return apellido; }
+    void incrementarCapturas() { ++capturas; }
 
 
     void setRango(const Rango& newRango) { rango = newRango; }
@@ -49263,7 +49267,7 @@ public:
     bool registrarUsuario(const std::string& nombre, const std::string& apellido, const std::string& contrasena);
     std::optional<Usuario> autenticarUsuario(const std::string& nombre,const std::string& apellido, const std::string& contrasena);
     bool actualizarRangoUsuario(int idUsuario, const std::string& nuevoRango);
-
+    bool incrementarCapturas(int usuarioId);
 private:
     DatabaseHandler& dbHandler;
 };
@@ -49412,5 +49416,34 @@ bool UsuarioDAO::actualizarRangoUsuario(int idUsuario, const std::string& nuevoR
 
     sqlite3_finalize(stmt);
     std::cout << "Rango actualizado exitosamente para el usuario ID: " << idUsuario << std::endl;
+    return true;
+}
+
+bool UsuarioDAO::incrementarCapturas(int usuarioId) {
+    sqlite3_stmt* stmt;
+    const std::string sql = "UPDATE usuarios SET capturas = capturas + 1 WHERE id = ?";
+
+    if (sqlite3_prepare_v2(dbHandler.getDb(), sql.c_str(), -1, &stmt, nullptr) != 
+# 101 "C:/Users/gring/Downloads/FINAL_TEST/DAO/UsuarioDAO.cpp" 3
+                                                                                 0
+# 101 "C:/Users/gring/Downloads/FINAL_TEST/DAO/UsuarioDAO.cpp"
+                                                                                          ) {
+        std::cerr << "Error al preparar la actualización de capturas: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, usuarioId);
+
+    if (sqlite3_step(stmt) != 
+# 108 "C:/Users/gring/Downloads/FINAL_TEST/DAO/UsuarioDAO.cpp" 3
+                             101
+# 108 "C:/Users/gring/Downloads/FINAL_TEST/DAO/UsuarioDAO.cpp"
+                                        ) {
+        std::cerr << "Error al actualizar las capturas del usuario: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
     return true;
 }
