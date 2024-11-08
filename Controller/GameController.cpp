@@ -97,12 +97,6 @@ Secuaz GameController::obtenerSecuazAleatorio() {
     return Secuaz(); // Retorna un secuaz vacío o de valor nulo si no hay disponibles
 }
 
-
-void GameController::reiniciarJuego() {
-    detective.resetMovimientos(3); //reiniciamos movimientos
-    localidad_actual = obtenerLocalidadAleatoria(); // Restablece la localidad actual
-}
-
 void GameController::finalizarJuego(GameWindow* gameWindow) {
     // Crear el diálogo de mensaje de fin de juego
     Gtk::MessageDialog *messageDialog = new Gtk::MessageDialog("Te has quedado sin intentos de viajes, casi los tenías!",
@@ -161,10 +155,17 @@ bool GameController::haySecuacesDisponibles() const {
 void GameController::actualizarRango() {
     detective.avanzarRango();  // Avanza el rango del detective
 
+    if (!usuarioDAO->actualizarRangoUsuario(jugador.getId(), detective.getRango().getNombre())) {
+        std::cerr << "Error al actualizar el rango del usuario en la base de datos." << std::endl;
+    } else {
+        std::cout << "Rango actualizado en la base de datos a: " << detective.getRango().getNombre() << std::endl;
+    }
+
     if (detective.getRango().getNombre() == "Senior") {
         std::cout << "¡Felicidades! Ahora tienes el rango más alto y puedes capturar a Carmen San Diego." << std::endl;
     }
 }
+
 
 Rango GameController::obtenerRangoDetective() const {
     return detective.getRango();

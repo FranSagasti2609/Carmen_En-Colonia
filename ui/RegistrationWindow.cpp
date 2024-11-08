@@ -58,8 +58,6 @@ void RegistrationWindow::login_success() {
 
     if (usuario) {
         game_controller->setUsuario(usuario.value());
-        std::cout << "El juego comenzará, detective " << usuario->getNombre() << std::endl;
-
         closeParentWindow(); // Llama al callback que cierra CarouselWindow
         is_logged_in = true; //habilito variable para gestion del main
     } else {

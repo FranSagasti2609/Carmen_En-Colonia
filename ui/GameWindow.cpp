@@ -134,7 +134,7 @@ void GameWindow::seleccionarPista(int indice) {
                 delete dialog; // Eliminar el diálogo correctamente
 
                 // Si alcanza una racha de 3 aciertos, captura al secuaz
-                if (contador_racha == 3) {
+                if (contador_racha == 1) {
                     controller->marcarSecuazComoCapturado(secuaz_id);
                     contador_racha = 0;  // Reinicia la racha después de capturar
 
@@ -214,11 +214,11 @@ void GameWindow::limpiarContenedor(Gtk::Box& contenedor) {
 // Implementación de on_entry_activate
 void GameWindow::on_entry_activate() {
     std::string input = entry_input.get_text();
-    if (input == "D") {
+    if (input == "D" || input == "d") {
         seleccionarPista(0);
-    } else if (input == "F") {
+    } else if (input == "F" || input == "f") {
         seleccionarPista(1);
-    } else if (input == "G") {
+    } else if (input == "G" || input == "g") {
         seleccionarPista(2);
     }
     entry_input.set_text("");  // Limpia el campo de entrada después de procesar

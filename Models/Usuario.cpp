@@ -7,6 +7,12 @@ Usuario::Usuario(int id, const std::string& nombre, const std::string& apellido)
     : id(id), nombre(nombre), apellido(apellido) {
     // Inicialización adicional si es necesaria
 }
+
+Usuario::Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango)
+    : id(id), nombre(nombre), apellido(apellido), rango(rango) {
+    // Inicialización adicional si es necesaria
+}
+
 // Implementación del método para guardar el usuario en la base de datos
 void Usuario::guardarEnBD(sqlite3* db) {
     const char* sql = "INSERT INTO usuarios (nombre, apellido, contrasena, rango, capturas) VALUES (?, ?, ?, ?, ?)";

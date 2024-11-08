@@ -28,8 +28,6 @@ public:
 
     int getMovimientos() const {return detective.getMovimientos(); }
 
-    //Gestionar reinicio y finalizacion
-    void reiniciarJuego();
     void finalizarJuego(GameWindow* gameWindow);
 
     Localidad obtenerLocalidadAleatoria();

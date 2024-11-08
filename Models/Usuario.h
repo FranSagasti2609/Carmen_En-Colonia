@@ -18,6 +18,7 @@ public:
     // Constructor por defecto, inicializa el rango como un objeto Rango
     Usuario() : id(0), capturas(0), rango("Junior") {} // Inicializa rango en "Junior"
     Usuario(int id, const std::string& nombre, const std::string& apellido);
+    Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango);
 
     // Getters
     int getId() const { return id; }

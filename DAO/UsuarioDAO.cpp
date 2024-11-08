@@ -36,7 +36,7 @@ bool UsuarioDAO::registrarUsuario(const std::string& nombre, const std::string& 
     return true;
 }
 std::optional<Usuario> UsuarioDAO::autenticarUsuario(const std::string& nombre, const std::string& apellido, const std::string& contrasena) {
-    const std::string sql = "SELECT id, nombre, apellido FROM usuarios WHERE nombre = ? AND apellido = ? AND contrasena = ?;";
+    const std::string sql = "SELECT id, nombre, apellido, rango FROM usuarios WHERE nombre = ? AND apellido = ? AND contrasena = ?;";
     sqlite3_stmt* stmt;
     sqlite3* db = dbHandler.getDb();
 
@@ -53,12 +53,44 @@ std::optional<Usuario> UsuarioDAO::autenticarUsuario(const std::string& nombre, 
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        const char* nombreUsuario = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        const char* apellidoUsuario = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        usuario = Usuario(id, nombreUsuario ? nombreUsuario : "", apellidoUsuario ? apellidoUsuario : "");
+        const char* nombreResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        const char* apellidoResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        const char* rangoResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+
+        // Verificación de nulos antes de construcción de std::string
+        std::string nombreUsuario = nombreResultado ? nombreResultado : "";
+        std::string apellidoUsuario = apellidoResultado ? apellidoResultado : "";
+        std::string rangoUsuario = rangoResultado ? rangoResultado : "No asignado";  // Asegura un valor por defecto si rango es nulo
+
+        usuario = Usuario(id, nombreUsuario, apellidoUsuario, rangoUsuario);
     } else {
         std::cerr << "Usuario no encontrado o credenciales incorrectas." << std::endl;
     }
     sqlite3_finalize(stmt);
     return usuario;
 }
+
+
+bool UsuarioDAO::actualizarRangoUsuario(int idUsuario, const std::string& nuevoRango) {
+    sqlite3_stmt* stmt;
+    const std::string sql = "UPDATE usuarios SET rango = ? WHERE id = ?";
+
+    if (sqlite3_prepare_v2(dbHandler.getDb(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Error al preparar la actualización del rango: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, nuevoRango.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, idUsuario);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Error al actualizar el rango del usuario: " << sqlite3_errmsg(dbHandler.getDb()) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    std::cout << "Rango actualizado exitosamente para el usuario ID: " << idUsuario << std::endl;
+    return true;
+}
+
