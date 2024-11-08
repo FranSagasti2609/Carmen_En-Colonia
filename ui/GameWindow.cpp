@@ -134,7 +134,7 @@ void GameWindow::seleccionarPista(int indice) {
                 delete dialog; // Eliminar el diálogo correctamente
 
                 // Si alcanza una racha de 3 aciertos, captura al secuaz
-                if (contador_racha == 1) {
+                if (contador_racha == 3) {
                     controller->marcarSecuazComoCapturado(secuaz_id);
                     contador_racha = 0;  // Reinicia la racha después de capturar
 
@@ -233,10 +233,13 @@ void GameWindow::iniciarNuevoJuego() {
     mostrarIntroduccion();  // Muestra la introducción para el nuevo secuaz
 }
 
-void GameWindow::actualizarLabelRango(const Usuario& usuario_actualizado) {
-    std::ostringstream oss;
-    oss << "Detective: " << usuario_actualizado.getNombre() << " | Rango: " << usuario_actualizado.getRango().getNombre();
-    label_rango.set_text(oss.str());
+void GameWindow::actualizarLabelRango(const Usuario& usuario) {
+    Glib::signal_idle().connect([this, usuario]() {
+        std::ostringstream oss;
+        oss << "Detective: " << usuario.getNombre() << " | Rango: " << usuario.getRango().getNombre();
+        label_rango.set_text(oss.str());
+        return false; // Detener después de la primera ejecución
+    });
 }
 
 
