@@ -150,8 +150,6 @@ bool GameController::haySecuacesDisponibles() const {
     return otrosSecuacesDisponibles;
 }
 
-
-
 void GameController::actualizarRango() {
     detective.avanzarRango();  // Avanza el rango del detective
 
@@ -165,7 +163,6 @@ void GameController::actualizarRango() {
         std::cout << "¡Felicidades! Ahora tienes el rango más alto y puedes capturar a Carmen San Diego." << std::endl;
     }
 }
-
 
 Rango GameController::obtenerRangoDetective() const {
     return detective.getRango();

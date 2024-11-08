@@ -12,7 +12,6 @@
 #include <set>
 
 class GameWindow;
-enum GameState { INICIO, EN_PROGRESO, FINALIZADO };
 
 class GameController {
 public:

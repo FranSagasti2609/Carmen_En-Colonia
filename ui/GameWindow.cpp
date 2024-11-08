@@ -241,14 +241,25 @@ void GameWindow::actualizarLabelRango(const Usuario& usuario_actualizado) {
 
 
 void GameWindow::mostrarDialogoRango(const std::string& nuevoRango) {
-    Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Rango Aumentado!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
-    dialog->set_secondary_text("¡Felicidades! Ahora eres " + nuevoRango + ".");
+    std::string titulo = "¡Rango Aumentado!";
+    std::string mensaje;
+
+    if (nuevoRango == "Senior") {
+        mensaje = "¡Felicidades! Ahora eres un detective Senior. Puedes intentar capturar a Carmen San Diego.";
+        // Aquí puedes también llamar a otras funciones que manejen lógica específica para cuando se alcanza el rango Senior.
+    } else {
+        mensaje = "¡Felicidades! Ahora eres " + nuevoRango + ".";
+    }
+
+    Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, titulo, false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
+    dialog->set_secondary_text(mensaje);
     dialog->signal_response().connect([this, dialog](int) {
         dialog->hide();
         delete dialog;
     });
     dialog->show();  // Muestra el diálogo
 }
+
 
 void GameWindow::mostrarDialogoTodosCapturados() {
     Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Todos los secuaces han sido capturados!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
