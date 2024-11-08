@@ -159,6 +159,7 @@ void GameController::actualizarRango() {
         std::cout << "Rango actualizado en la base de datos a: " << detective.getRango().getNombre() << std::endl;
     }
 
+    detective.avanzarRango();
     if (detective.getRango().getNombre() == "Senior") {
         std::cout << "¡Felicidades! Ahora tienes el rango más alto y puedes capturar a Carmen San Diego." << std::endl;
     }
