@@ -1652,4 +1652,5 @@ CMakeFiles\FINAL_TEST.dir\ui\GameWindow.cpp.obj.ddi: \
  D:/msys64/mingw64/include/c++/14.2.0/numeric \
  D:/msys64/mingw64/include/c++/14.2.0/bits/stl_numeric.h \
  D:/msys64/mingw64/include/c++/14.2.0/pstl/glue_numeric_defs.h \
- C:/Users/gring/Downloads/FINAL_TEST/Models/Rango.h
+ C:/Users/gring/Downloads/FINAL_TEST/Models/Rango.h \
+ C:/Users/gring/Downloads/FINAL_TEST/Models/Secuaz.h

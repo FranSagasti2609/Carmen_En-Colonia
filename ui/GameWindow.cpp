@@ -4,6 +4,7 @@
 #include <random>
 #include <gtkmm/messagedialog.h>
 #include "../Models/Rango.h"
+#include "../Models/Secuaz.h"
 
 // Constructor de GameWindow
 // Constructor de GameWindow
@@ -11,72 +12,90 @@ GameWindow::GameWindow(const std::shared_ptr<GameController>& game_controller, s
     : controller(game_controller), pistaDAO(*db_handler) {
 
     set_title("Carmen Sandiego en Colonia - Juego");
-    set_default_size(800, 600);
+    set_default_size(1160, 600);
 
-    // Configuración de la información del detective
     Usuario usuario = controller->obtenerUsuario();
+    Rango rango = usuario.getRango();
+    Secuaz secuaz = controller->obtenerSecuazActual();
 
-    // Crear un contenedor horizontal para la imagen y el texto
-    Gtk::Box* hbox_rango = Gtk::manage(new Gtk::Box(Gtk::Orientation::HORIZONTAL, 200));
+    Gtk::Box* hbox_main = Gtk::manage(new Gtk::Box(Gtk::Orientation::HORIZONTAL, 10));
 
-    // Texto del rango
-    actualizarLabelRango(controller->obtenerUsuario());
-    hbox_rango->append(label_rango);
-
-    // Configuración de intentos
+    // Sección Izquierda: Información del detective y rango
+    Gtk::Box* vbox_left = Gtk::manage(new Gtk::Box(Gtk::Orientation::VERTICAL, 5));
+    image_rango = Gtk::manage(new Gtk::Image(rango.getImagePath()));
+    image_rango->set_size_request(150, 150);
+    label_rango = Gtk::manage(new Gtk::Label("Rango: " + rango.getNombre()));
+    Gtk::Label* label_nombre = Gtk::manage(new Gtk::Label("Detective: " + usuario.getNombre()));
     label_intentos.set_text("Intentos actuales: " + std::to_string(intentos_actuales));
-    hbox_rango->append(label_intentos);
+    vbox_left->append(*image_rango);
+    vbox_left->append(*label_rango);
+    vbox_left->append(*label_nombre);
+    vbox_left->append(label_intentos);
+    hbox_main->append(*vbox_left);
 
-    vbox.append(*hbox_rango);
-
-    // Agregar el label de introducción con efecto de tipeo al contenedor
-    vbox.append(label_introduccion);
-
-    // Contenedor para las pistas
-    vbox_pistas.set_margin_top(10);
-    vbox.append(vbox_pistas);
-
-    // Llama a mostrarIntroduccion() para inicializar la presentación
-    mostrarIntroduccion();
-
-    // Agregar campo de entrada
+    // Sección Central: Pistas y Entrada de Texto
+    Gtk::Box* vbox_center = Gtk::manage(new Gtk::Box(Gtk::Orientation::VERTICAL, 5));
+    label_introduccion.set_margin_top(5);
+    label_introduccion.set_halign(Gtk::Align::CENTER);
+    vbox_center->append(label_introduccion);
     entry_input.set_placeholder_text("Ingresa D, F o G para seleccionar pista");
     entry_input.signal_activate().connect(sigc::mem_fun(*this, &GameWindow::on_entry_activate));
-    vbox.append(entry_input);
+    vbox_center->append(entry_input);
+    vbox_center->append(vbox_pistas);
+    hbox_main->append(*vbox_center);
 
-    set_child(vbox);
+    // Sección Derecha: Información del secuaz
+    Gtk::Box* vbox_right = Gtk::manage(new Gtk::Box(Gtk::Orientation::VERTICAL, 5));
+    image_secuaz = Gtk::manage(new Gtk::Image(secuaz.getImagePath()));
+    image_secuaz->set_size_request(150, 150);
+    label_secuaz = Gtk::manage(new Gtk::Label("Secuaz: " + secuaz.getNombre()));
+    vbox_right->append(*image_secuaz);
+    vbox_right->append(*label_secuaz);
+    hbox_main->append(*vbox_right);
+
+    set_child(*hbox_main);
+    show();
+
+    mostrarIntroduccion();
+    iniciarJuego();
+}
+
+void GameWindow::actualizarLabelRango(const Usuario& usuario) {
+    std::string rango = usuario.getRango().getNombre();
+    std::string rangoText = "Detective: " + usuario.getNombre() + " | Rango: " + rango;
+    label_rango->set_text(rangoText);
+
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(usuario.getRango().getImagePath());
+    image_rango->set(pixbuf->scale_simple(100, 100, Gdk::InterpType::BILINEAR));
 }
 
 void GameWindow::mostrarIntroduccion() {
-    // Obtener secuaz y localidades aleatorias
-    Secuaz secuaz = controller->obtenerSecuazAleatorio();
+    Secuaz secuaz = controller->obtenerSecuazActual();  // Usa el secuaz actual
     secuaz_id = secuaz.getId();
-    localidad_objetivo = controller->obtenerLocalidadAleatoria();  // Ciudad objetivo (donde fue visto el secuaz)
+    localidad_objetivo = controller->obtenerLocalidadAleatoria();
 
     do {
-        localidad_actual = controller->obtenerLocalidadAleatoria();  // Ciudad actual del detective
+        localidad_actual = controller->obtenerLocalidadAleatoria();
     } while(localidad_actual.getNombre() == localidad_objetivo.getNombre());
 
-    // Reiniciar labels
     mensaje_actual.clear();
     label_introduccion.set_text("");
-
-    // Mostrar ciudad actual y ciudad objetivo
     controller->setLocalidadActual(localidad_actual);
 
-    // Crear el mensaje completo de ACME
     std::ostringstream oss;
     oss << "Mensaje Urgente de ACME: El secuaz " << secuaz.getNombre()
         << " ha sido visto en " << localidad_objetivo.getNombre()
         << ". Tu misión es capturarlo para interrogarlo lo antes posible.\n"
         << "Actualmente estás en " << localidad_actual.getNombre() << ". ¡Buena suerte, detective!";
 
-    // Inicia el efecto de tipeo para mostrar el mensaje
     mensaje_completo = oss.str();
     mensaje_actual.clear();
     indice_tipeo = 0;
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &GameWindow::efectoTipeo), 50);
+
+    actualizarSecuazLabel(secuaz);
 }
+
 
 bool GameWindow::efectoTipeo() {
     if (indice_tipeo < mensaje_completo.size()) {
@@ -91,7 +110,6 @@ bool GameWindow::efectoTipeo() {
 }
 
 void GameWindow::iniciarJuego() {
-    // Obtener todas las pistas de la ciudad objetivo
     auto pistas = pistaDAO.obtenerPistasPorLocalidad(localidad_objetivo.getId());
 
     Pista pista_correcta;
@@ -122,62 +140,63 @@ void GameWindow::iniciarJuego() {
 
 void GameWindow::seleccionarPista(int indice) {
     if (indice >= 0 && indice < pistas_seleccionadas.size()) {
-        Gtk::MessageDialog *dialog;
+        Gtk::MessageDialog* dialog;
 
+        // Verifica si la pista seleccionada es correcta
         if (pistas_seleccionadas[indice].getEsCorrecta()) {
-            contador_racha++;
+            contador_racha++;  // Incrementa el contador de aciertos
 
-            // Mensaje de pista correcta
-            dialog = new Gtk::MessageDialog(*this, "¡Pista Correcta!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK);
+            // Muestra mensaje de pista correcta
+            dialog = new Gtk::MessageDialog(*this, "¡Pista Correcta!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK,true);
             dialog->signal_response().connect([this, dialog](int) {
                 dialog->hide();
-                delete dialog; // Eliminar el diálogo correctamente
+                delete dialog;
 
-                // Si alcanza una racha de 3 aciertos, captura al secuaz
+                // Verifica si se alcanzaron 3 aciertos
                 if (contador_racha == 3) {
-                    controller->marcarSecuazComoCapturado(secuaz_id);
-                    contador_racha = 0;  // Reinicia la racha después de capturar
+                    controller->capturarSecuazActual();  // Captura el secuaz actual
+                    contador_racha = 0;  // Reinicia la racha
 
                     // Verifica si todos los secuaces han sido capturados
                     if (controller->todosLosSecuacesCapturados()) {
-                        mostrarDialogoTodosCapturados();  // Muestra el mensaje de captura final
+                        mostrarDialogoTodosCapturados();
                     } else {
-                        iniciarNuevoJuego();  // Continúa con un nuevo secuaz si quedan disponibles
+                        // Selecciona un nuevo secuaz y una nueva localidad
+                        auto [nuevoSecuaz, nuevaLocalidad] = controller->iniciarNuevoSecuaz();
+                        actualizarSecuazLabel(nuevoSecuaz);  // Actualiza la interfaz con el nuevo secuaz
+                        localidad_objetivo = nuevaLocalidad;
+                        mostrarIntroduccion();
                     }
-                    // Actualiza el rango del detective
-                    controller->actualizarRango();
-                    Usuario usuario_actualizado = controller->obtenerUsuario();
-                    actualizarLabelRango(usuario_actualizado);
 
-                    std::string nuevoRango = controller->obtenerRangoDetective().getNombre();
-                    mostrarDialogoRango(nuevoRango);  // Muestra el mensaje de rango actualizado
-
-
+                    // Actualiza el rango del detective solo si aún no es "Senior"
+                    if (controller->obtenerRangoDetective().getNombre() != "Senior") {
+                        controller->actualizarRango();
+                        actualizarRangoLabel(controller->obtenerRangoDetective());
+                        mostrarDialogoRango(controller->obtenerRangoDetective().getNombre());
+                    }
                 } else {
-                    // Si no alcanza la racha de 3, el secuaz se mueve de localidad y se generan nuevas pistas
-                    localidad_objetivo = controller->obtenerLocalidadAleatoria();  // Actualiza la nueva ubicación del secuaz
-                    mostrarIntroduccion();  // Genera nuevas pistas para la nueva ubicación
+                    // Si no se alcanzaron 3 aciertos, actualiza solo la localidad sin cambiar el secuaz
+                    localidad_objetivo = controller->obtenerLocalidadAleatoria();
+                    mostrarIntroduccion();
                 }
             });
-            dialog->show(); // Mostrar el diálogo de pista correcta
-
+            dialog->show();
         } else {
-            contador_racha = 0; // Pierde la racha si elige una pista incorrecta
-            // Mensaje para pista incorrecta
-            dialog = new Gtk::MessageDialog(*this,
-                                            "Pista Incorrecta. Inténtalo nuevamente.",
-                                            false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK);
-            intentos_actuales--;
-            actualizarIntentos();
+            // Si la pista seleccionada es incorrecta, reinicia la racha
+            contador_racha = 0;
+            dialog = new Gtk::MessageDialog(*this, "Pista Incorrecta. Inténtalo nuevamente.", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK);
+            intentos_actuales--;  // Reduce los intentos restantes
+            actualizarIntentos();  // Actualiza la interfaz con los intentos restantes
             dialog->signal_response().connect([this, dialog](int) {
                 dialog->hide();
-                delete dialog; // Eliminar el diálogo correctamente
+                delete dialog;
 
+                // Si los intentos llegan a 0, finaliza el juego
                 if (intentos_actuales == 0) {
                     controller->finalizarJuego(this);
                 }
             });
-            dialog->show(); // Mostrar el diálogo
+            dialog->show();
         }
     } else {
         std::cerr << "Índice de pista no válido." << std::endl;
@@ -186,6 +205,7 @@ void GameWindow::seleccionarPista(int indice) {
 
 void GameWindow::mostrarPistas(const std::vector<Pista>& pistas) {
     limpiarContenedor(vbox_pistas);
+
     std::vector<char> letras = {'D', 'F', 'G'};
 
     for (size_t i = 0; i < pistas.size(); ++i) {
@@ -194,24 +214,21 @@ void GameWindow::mostrarPistas(const std::vector<Pista>& pistas) {
             pista_con_letra << "<span font='11' weight='bold'>" << letras[i] << ": " << pistas[i].getDescripcion() << "</span>";
 
             Gtk::Label* label_pista = Gtk::manage(new Gtk::Label());
-            label_pista->set_use_markup(true);  // Habilita el uso de markup
+            label_pista->set_use_markup(true);
             label_pista->set_markup(pista_con_letra.str());
+
             vbox_pistas.append(*label_pista);
         }
     }
     vbox_pistas.show();
 }
 
-
-// Implementación de limpiarContenedor
 void GameWindow::limpiarContenedor(Gtk::Box& contenedor) {
-    // Remueve y destruye todos los widgets en el contenedor
     for (auto& widget : contenedor.get_children()) {
         contenedor.remove(*widget);
     }
 }
 
-// Implementación de on_entry_activate
 void GameWindow::on_entry_activate() {
     std::string input = entry_input.get_text();
     if (input == "D" || input == "d") {
@@ -221,27 +238,12 @@ void GameWindow::on_entry_activate() {
     } else if (input == "G" || input == "g") {
         seleccionarPista(2);
     }
-    entry_input.set_text("");  // Limpia el campo de entrada después de procesar
+    entry_input.set_text("");
 }
 
 void GameWindow::actualizarIntentos() {
     label_intentos.set_text("Intentos actuales: " + std::to_string(intentos_actuales));
 }
-
-void GameWindow::iniciarNuevoJuego() {
-    localidad_objetivo = controller->obtenerLocalidadAleatoria();
-    mostrarIntroduccion();  // Muestra la introducción para el nuevo secuaz
-}
-
-void GameWindow::actualizarLabelRango(const Usuario& usuario) {
-    Glib::signal_idle().connect([this, usuario]() {
-        std::ostringstream oss;
-        oss << "Detective: " << usuario.getNombre() << " | Rango: " << usuario.getRango().getNombre();
-        label_rango.set_text(oss.str());
-        return false; // Detener después de la primera ejecución
-    });
-}
-
 
 void GameWindow::mostrarDialogoRango(const std::string& nuevoRango) {
     std::string titulo = "¡Rango Aumentado!";
@@ -253,16 +255,14 @@ void GameWindow::mostrarDialogoRango(const std::string& nuevoRango) {
     } else {
         mensaje = "¡Felicidades! Ahora eres " + nuevoRango + ".";
     }
-
     Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, titulo, false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
     dialog->set_secondary_text(mensaje);
-    dialog->signal_response().connect([this, dialog](int) {
+    dialog->signal_response().connect([dialog](int) {
         dialog->hide();
         delete dialog;
     });
-    dialog->show();  // Muestra el diálogo
+    dialog->show();
 }
-
 
 void GameWindow::mostrarDialogoTodosCapturados() {
     Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Todos los secuaces han sido capturados!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
@@ -271,5 +271,20 @@ void GameWindow::mostrarDialogoTodosCapturados() {
         dialog->hide();
         delete dialog;
     });
-    dialog->show();  // Muestra el diálogo
+    dialog->show();
 }
+
+void GameWindow::actualizarSecuazLabel(const Secuaz& secuaz) {
+    label_secuaz->set_text("Secuaz: " + secuaz.getNombre());
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(secuaz.getImagePath());
+    image_secuaz->set(pixbuf->scale_simple(150, 150, Gdk::InterpType::BILINEAR));
+}
+
+void GameWindow::actualizarRangoLabel(const Rango& rango) {
+    label_rango->set_text("Rango: " + rango.getNombre());
+
+    // Cargar y escalar la imagen del rango
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(rango.getImagePath());
+    image_rango->set(pixbuf->scale_simple(150, 150, Gdk::InterpType::BILINEAR));
+}
+

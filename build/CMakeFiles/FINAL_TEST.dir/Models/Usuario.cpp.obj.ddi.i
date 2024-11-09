@@ -32194,7 +32194,11 @@ private:
 public:
 
     Usuario() : id(0), capturas(0), rango("Junior") {}
+    Usuario(int id, const std::string& nombre, const std::string& apellido, int capturas)
+       : id(id), nombre(nombre), apellido(apellido), capturas(capturas) {}
+
     Usuario(int id, const std::string& nombre, const std::string& apellido);
+    Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango);
 
 
     int getId() const { return id; }
@@ -32202,6 +32206,7 @@ public:
     int getCapturas() const { return capturas; }
     const std::string& getNombre() const { return nombre; }
     const std::string& getApellido() const { return apellido; }
+    void incrementarCapturas() { ++capturas; }
 
 
     void setRango(const Rango& newRango) { rango = newRango; }
@@ -42809,41 +42814,47 @@ Usuario::Usuario(int id, const std::string& nombre, const std::string& apellido)
 
 }
 
+Usuario::Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango)
+    : id(id), nombre(nombre), apellido(apellido), rango(rango) {
+
+}
+
+
 void Usuario::guardarEnBD(sqlite3* db) {
     const char* sql = "INSERT INTO usuarios (nombre, apellido, contrasena, rango, capturas) VALUES (?, ?, ?, ?, ?)";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == 
-# 15 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 21 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                                           0
-# 15 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 21 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                                                    ) {
         sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, 
-# 16 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 22 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                                       ((sqlite3_destructor_type)0)
-# 16 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 22 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                                                    );
         sqlite3_bind_text(stmt, 2, apellido.c_str(), -1, 
-# 17 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 23 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                                         ((sqlite3_destructor_type)0)
-# 17 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 23 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                                                      );
         sqlite3_bind_text(stmt, 3, contrasena.c_str(), -1, 
-# 18 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 24 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                                           ((sqlite3_destructor_type)0)
-# 18 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 24 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                                                        );
         sqlite3_bind_text(stmt, 4, rango.getNombre().c_str(), -1, 
-# 19 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 25 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                                                  ((sqlite3_destructor_type)0)
-# 19 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 25 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                                                               );
         sqlite3_bind_int(stmt, 5, capturas);
 
         if (sqlite3_step(stmt) != 
-# 22 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
+# 28 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp" 3
                                  101
-# 22 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
+# 28 "C:/Users/gring/Downloads/FINAL_TEST/Models/Usuario.cpp"
                                             ) {
             sqlite3_finalize(stmt);
             throw std::runtime_error("Error al ejecutar la consulta para guardar el usuario.");

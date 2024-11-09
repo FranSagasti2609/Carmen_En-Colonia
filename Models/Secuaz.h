@@ -35,6 +35,8 @@ public:
     void setPeligrosidad(int peligrosidad);
     void setLocalidad(std::shared_ptr<Localidad> localidad);
     void setCapturado(bool capturado);
+
+    std::string getImagePath() const;
 };
 
 

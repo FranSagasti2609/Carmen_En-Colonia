@@ -23,3 +23,23 @@ void Secuaz::setHabilidad(const std::string& habilidad) { this->habilidad = habi
 void Secuaz::setPeligrosidad(int peligrosidad) { this->peligrosidad = peligrosidad; }
 void Secuaz::setLocalidad(std::shared_ptr<Localidad> localidad) { this->localidad = localidad; }
 void Secuaz::setCapturado(bool capturado) { this->capturado = capturado; }
+
+std::string Secuaz::getImagePath() const {
+    std::string basePath = "../Multimedia/";
+
+    if (nombre == "Betosecreto") {
+        return basePath + "Betosecreto.png";
+    } else if (nombre == "EllaBella") {
+        return basePath + "EllaBella.png";
+    } else if (nombre == "Mindy Ana Son") {
+        return basePath + "Mindy Ana Son.png";
+    } else if (nombre == "MOONabomber") {
+        return basePath + "Moonabomber.png";
+    } else if (nombre == "Carmen San Diego") {
+        return basePath + "CSD.png";
+    }
+
+    return basePath + "unknown.png"; // Imagen por defecto si no se reconoce el secuaz
+}
+
+

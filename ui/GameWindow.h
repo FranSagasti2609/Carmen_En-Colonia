@@ -18,19 +18,21 @@ public:
     void iniciarNuevoJuego();
 
     void actualizarLabelRango(const Usuario& usuario_actualizado);
-
     void mostrarDialogoRango(const std::string &nuevoRango);
-
     void mostrarDialogoTodosCapturados();
-
     void seleccionarPista(int indice);
     bool on_key_pressed(guint keyval, guint keycode, Gdk::ModifierType state);
     void on_entry_activate();
     std::vector<Pista> pistas_seleccionadas; // Almacenar las pistas seleccionadas
 
+    //metodos para iconos.
+    void actualizarSecuazLabel(const Secuaz& secuaz);
+    void actualizarRangoLabel(const Rango& rango);
+
+    std::pair<Secuaz, Localidad> iniciarNuevoSecuaz();
 private:
     // Etiquetas y contenedores
-    Gtk::Label label_rango;
+    Gtk::Label* label_rango;
     Gtk::Label label_localidad;
     Gtk::Box vbox{Gtk::Orientation::VERTICAL};
     Gtk::Box vbox_pistas{Gtk::Orientation::VERTICAL};
@@ -38,6 +40,9 @@ private:
     Gtk::Image imagen_rango;
     Gtk::Label label_introduccion;
     Gtk::Label label_intentos;
+    Gtk::Label* label_secuaz; //iconos
+    Gtk::Image* image_secuaz; //iconos
+    Gtk::Image* image_rango;//iconos
 
     // Controlador del juego
     std::shared_ptr<GameController> controller;

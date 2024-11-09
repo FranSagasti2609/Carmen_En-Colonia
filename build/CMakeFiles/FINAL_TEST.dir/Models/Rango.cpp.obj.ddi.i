@@ -31008,9 +31008,9 @@ std::string Rango::getNombre() const {
 
 
 std::string Rango::getImagePath() const {
-    std::string basePath = "../src/Multimedia/";
+    std::string basePath = "../Multimedia/";
 
-    if (nombre == "Junior") {
+    if (nombre == "DETECTIVE JUNIOR") {
         return basePath + "DetectiveJunior.png";
     } else if (nombre == "Eficiente") {
         return basePath + "DetectiveEficiente.png";
@@ -31020,7 +31020,7 @@ std::string Rango::getImagePath() const {
         return basePath + "DetectiveSenior.png";
     }
 
-    return "";
+    return "Imagen no encontrada.";
 }
 
 

@@ -16,9 +16,9 @@ std::string Rango::getNombre() const {
 
 // Retorna la ruta de la imagen según el nombre del rango
 std::string Rango::getImagePath() const {
-    std::string basePath = "../src/Multimedia/";
+    std::string basePath = "../Multimedia/";
 
-    if (nombre == "Junior") {
+    if (nombre == "DETECTIVE JUNIOR") {
         return basePath + "DetectiveJunior.png";
     } else if (nombre == "Eficiente") {
         return basePath + "DetectiveEficiente.png";
@@ -28,7 +28,7 @@ std::string Rango::getImagePath() const {
         return basePath + "DetectiveSenior.png";
     }
 
-    return "";  // Devuelve una cadena vacía si no hay imagen disponible
+    return "Imagen no encontrada.";  // Devuelve una cadena vacía si no hay imagen disponible
 }
 
 // Método para avanzar al siguiente rango en el orden

@@ -36,6 +36,12 @@ public:
     void actualizarRango();
     Rango obtenerRangoDetective() const;
     bool todosLosSecuacesCapturados() const;
+    void actualizarSecuaz(const Secuaz& secuaz);
+
+    std::pair<Secuaz, Localidad> iniciarNuevoSecuaz() ;
+    Secuaz obtenerSecuazActual();
+    void capturarSecuazActual();
+
 private:
     Usuario jugador;
     Localidad localidad_actual;
@@ -47,8 +53,8 @@ private:
     Detective detective; // Instancia del detective
     bool logueado = false;
     std::set<int> secuaces_capturados;  // Un conjunto para registrar los IDs de secuaces capturados en esta partida
-
-
+    Secuaz secuaz_actual;  // Nuevo miembro para el secuaz en curso
+    Localidad localidad_objetivo; // Ciudad donde fue visto el secuaz
 };
 
 #endif //GAMECONTROLLER_H

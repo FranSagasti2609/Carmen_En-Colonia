@@ -57148,6 +57148,8 @@ public:
     void setPeligrosidad(int peligrosidad);
     void setLocalidad(std::shared_ptr<Localidad> localidad);
     void setCapturado(bool capturado);
+
+    std::string getImagePath() const;
 };
 # 6 "C:/Users/gring/Downloads/FINAL_TEST/DAO/SecuazDAO.h" 2
 # 1 "C:/Users/gring/Downloads/FINAL_TEST/DAO/LocalidadDAO.h" 1

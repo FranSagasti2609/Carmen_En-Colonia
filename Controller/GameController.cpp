@@ -28,7 +28,6 @@ void GameController::setUsuario(const Usuario& usuario) {
     std::cout << "Usuario asignado: " << usuario.getNombre() << std::endl;
 }
 
-
 Localidad GameController::obtenerLocalidadActual() const {
     return localidad_actual;
 }
@@ -45,38 +44,28 @@ void GameController::setLocalidadActual(const Localidad& localidad) {
 Localidad GameController::obtenerLocalidadAleatoria() {
     std::vector<Localidad> localidades = localidadDAO->getTodasLasLocalidades();
 
-    // Verificar que haya localidades disponibles
     if (localidades.empty()) {
-        // Manejo del caso donde no hay localidades
         std::cerr << "No hay localidades disponibles." << std::endl;
-        return Localidad(); // O retornar una localidad válida por defecto
+        return Localidad();
     }
 
-    // Generar un número aleatorio entre 0 y el tamaño del vector menos uno
-    std::random_device rd;  // Obtener una semilla
-    std::mt19937 gen(rd()); // Usar Mersenne Twister como generador
-    std::uniform_int_distribution<> distrib(0, localidades.size() - 1); // Distribución uniforme
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, localidades.size() - 1);
 
-    // Obtener un índice aleatorio
-    int indiceAleatorio = distrib(gen);
-
-    // Retornar la localidad aleatoria
-    return localidades[indiceAleatorio];
+    return localidades[distrib(gen)];
 }
 
 Secuaz GameController::obtenerSecuazAleatorio() {
-    // Primero, obtén todos los secuaces
     auto secuaces = secuazDAO->getTodosLosSecuaces();
-
-    // Filtra para obtener solo los secuaces que no han sido capturados y no incluyas a Carmen Sandiego
     std::vector<Secuaz> secuaces_disponibles;
+
     for (const auto& secuaz : secuaces) {
         if (!secuaz.isCapturado() && secuaz.getNombre() != "Carmen San Diego") {
             secuaces_disponibles.push_back(secuaz);
         }
     }
 
-    // Si todos los secuaces (excepto Carmen) han sido capturados, permite capturar a Carmen
     if (secuaces_disponibles.empty()) {
         Secuaz carmen = secuazDAO->obtenerSecuazPorNombre("Carmen San Diego");
         if (!carmen.isCapturado()) {
@@ -84,7 +73,6 @@ Secuaz GameController::obtenerSecuazAleatorio() {
         }
     }
 
-    // Selecciona aleatoriamente uno de los secuaces disponibles
     if (!secuaces_disponibles.empty()) {
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -92,80 +80,62 @@ Secuaz GameController::obtenerSecuazAleatorio() {
         return secuaces_disponibles[distrib(gen)];
     }
 
-    // En caso de que no haya secuaces disponibles
     std::cerr << "No hay secuaces disponibles para capturar." << std::endl;
-    return Secuaz(); // Retorna un secuaz vacío o de valor nulo si no hay disponibles
+    return Secuaz();
 }
 
 void GameController::finalizarJuego(GameWindow* gameWindow) {
-    // Crear el diálogo de mensaje de fin de juego
-    Gtk::MessageDialog *messageDialog = new Gtk::MessageDialog("Te has quedado sin intentos de viajes, casi los tenías!",
+    Gtk::MessageDialog* messageDialog = new Gtk::MessageDialog("Te has quedado sin intentos de viajes, casi los tenías!",
                                                                false, Gtk::MessageType::INFO, Gtk::ButtonsType::NONE, true);
-
-    // Personalizar el diálogo con solo el botón de "Salir"
     messageDialog->add_button("Salir", Gtk::ResponseType::CLOSE);
     messageDialog->set_title("Juego finalizado.");
     messageDialog->show();
 
-    // Conectar la respuesta del usuario al botón "Salir"
     messageDialog->signal_response().connect(
        [messageDialog, gameWindow](int response_id) {
            if (response_id == Gtk::ResponseType::CLOSE) {
-               gameWindow->close(); // Cerrar directamente la ventana de juego
+               gameWindow->close();
            }
-           // Destruir el diálogo después de manejar la respuesta
            messageDialog->hide();
-           delete messageDialog; // Liberar el recurso
+           delete messageDialog;
        }
    );
 }
 
-
 void GameController::marcarSecuazComoCapturado(int secuaz_id) {
-    secuaces_capturados.insert(secuaz_id);  // Agrega el ID del secuaz capturado
+    secuaces_capturados.insert(secuaz_id);
     usuarioDAO->incrementarCapturas(jugador.getId());
 }
 
 bool GameController::haySecuacesDisponibles() const {
     auto secuaces = secuazDAO->getTodosLosSecuaces();
-    bool otrosSecuacesDisponibles = false;
-
     for (const auto& secuaz : secuaces) {
-        // Si hay algún secuaz no capturado que no sea Carmen Sandiego, marcamos como disponible
         if (!secuaz.isCapturado() && secuaz.getNombre() != "Carmen San Diego") {
-            otrosSecuacesDisponibles = true;
-            break;
+            return true;
         }
     }
-
-    // Si no hay otros secuaces disponibles y Carmen no ha sido capturada, entonces está disponible
-    if (!otrosSecuacesDisponibles) {
-        Secuaz carmen = secuazDAO->obtenerSecuazPorNombre("Carmen San Diego");
-        return !carmen.isCapturado(); // True si Carmen está disponible, false si ya fue capturada
-    }
-
-    return otrosSecuacesDisponibles;
+    Secuaz carmen = secuazDAO->obtenerSecuazPorNombre("Carmen San Diego");
+    return !carmen.isCapturado();
 }
 
 void GameController::actualizarRango() {
-    detective.avanzarRango();  // Avanza el rango del detective
+    if (detective.getRango().getNombre() == "Senior") {
+        std::cout << "El rango ya es Senior. No se realizarán más actualizaciones de rango." << std::endl;
+        return;
+    }
+    detective.avanzarRango();
 
     if (!usuarioDAO->actualizarRangoUsuario(jugador.getId(), detective.getRango().getNombre())) {
         std::cerr << "Error al actualizar el rango del usuario en la base de datos." << std::endl;
     } else {
         std::cout << "Rango actualizado en la base de datos a: " << detective.getRango().getNombre() << std::endl;
     }
-
-    detective.avanzarRango();
-    if (detective.getRango().getNombre() == "Senior") {
-        std::cout << "¡Felicidades! Ahora tienes el rango más alto y puedes capturar a Carmen San Diego." << std::endl;
-    }
 }
 
 Rango GameController::obtenerRangoDetective() const {
     return detective.getRango();
 }
-//Metodo para gestionar si los secuaces menos carmen estan capturados
+
 bool GameController::todosLosSecuacesCapturados() const {
     auto secuaces = secuazDAO->getTodosLosSecuaces();
     for (const auto& secuaz : secuaces) {
@@ -176,6 +146,21 @@ bool GameController::todosLosSecuacesCapturados() const {
     return true;
 }
 
+Secuaz GameController::obtenerSecuazActual() {
+    if (secuaz_actual.getId() == 0) {
+        secuaz_actual = obtenerSecuazAleatorio();
+    }
+    return secuaz_actual;
+}
 
+void GameController::capturarSecuazActual() {
+    secuaces_capturados.insert(secuaz_actual.getId());
+    usuarioDAO->incrementarCapturas(jugador.getId());
+    secuaz_actual = obtenerSecuazAleatorio();
+}
 
-
+std::pair<Secuaz, Localidad> GameController::iniciarNuevoSecuaz() {
+    secuaz_actual = obtenerSecuazAleatorio();
+    localidad_objetivo = obtenerLocalidadAleatoria();
+    return {secuaz_actual, localidad_objetivo};
+}
