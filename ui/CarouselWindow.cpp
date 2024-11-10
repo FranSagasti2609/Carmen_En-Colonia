@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 
 CarouselWindow::CarouselWindow(std::shared_ptr<GameController> gameController, std::shared_ptr<DatabaseHandler> dbHandler)
     : gameController(std::move(gameController)), dbHandler(std::move(dbHandler)), registration_window(nullptr) {
-    set_title("Carmen Sandiego en Colonia");
+    set_title("Carmen Sandiego en Colonia - Carrusel");
     set_default_size(800, 600);
 
     auto keyController = Gtk::EventControllerKey::create();

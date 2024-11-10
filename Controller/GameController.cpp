@@ -60,15 +60,18 @@ Secuaz GameController::obtenerSecuazAleatorio() {
     auto secuaces = secuazDAO->getTodosLosSecuaces();
     std::vector<Secuaz> secuaces_disponibles;
 
+    // Filtra secuaces que no han sido capturados y no son Carmen San Diego
     for (const auto& secuaz : secuaces) {
-        if (!secuaz.isCapturado() && secuaz.getNombre() != "Carmen San Diego") {
+        if (secuaces_capturados.find(secuaz.getId()) == secuaces_capturados.end() &&
+            secuaz.getNombre() != "Carmen San Diego") {
             secuaces_disponibles.push_back(secuaz);
-        }
+            }
     }
 
     if (secuaces_disponibles.empty()) {
+        // Si solo Carmen queda disponible
         Secuaz carmen = secuazDAO->obtenerSecuazPorNombre("Carmen San Diego");
-        if (!carmen.isCapturado()) {
+        if (secuaces_capturados.find(carmen.getId()) == secuaces_capturados.end()) {
             return carmen;
         }
     }
@@ -83,6 +86,7 @@ Secuaz GameController::obtenerSecuazAleatorio() {
     std::cerr << "No hay secuaces disponibles para capturar." << std::endl;
     return Secuaz();
 }
+
 
 void GameController::finalizarJuego(GameWindow* gameWindow) {
     Gtk::MessageDialog* messageDialog = new Gtk::MessageDialog("Te has quedado sin intentos de viajes, casi los tenías!",

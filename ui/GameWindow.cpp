@@ -70,31 +70,46 @@ void GameWindow::actualizarLabelRango(const Usuario& usuario) {
 }
 
 void GameWindow::mostrarIntroduccion() {
-    Secuaz secuaz = controller->obtenerSecuazActual();  // Usa el secuaz actual
-    secuaz_id = secuaz.getId();
-    localidad_objetivo = controller->obtenerLocalidadAleatoria();
+    // Obtiene el secuaz actual. Si no hay secuaz asignado (ID == 0), selecciona uno nuevo.
+    Secuaz secuaz = controller->obtenerSecuazActual();
+    if (secuaz.getId() == 0) {
+        auto [nuevoSecuaz, nuevaLocalidad] = controller->iniciarNuevoSecuaz();
+        secuaz = nuevoSecuaz;
+        localidad_objetivo = nuevaLocalidad;
+    } else {
+        // Si ya hay un secuaz asignado, solo actualiza la localidad objetivo
+        localidad_objetivo = controller->obtenerLocalidadAleatoria();
+    }
 
+    secuaz_id = secuaz.getId();
+
+    // Genera una localidad aleatoria para la ubicación actual del detective, distinta de la localidad objetivo
     do {
         localidad_actual = controller->obtenerLocalidadAleatoria();
-    } while(localidad_actual.getNombre() == localidad_objetivo.getNombre());
+    } while (localidad_actual.getNombre() == localidad_objetivo.getNombre());
 
+    // Reinicia el mensaje de introducción y configura la localidad actual en el controlador
     mensaje_actual.clear();
     label_introduccion.set_text("");
     controller->setLocalidadActual(localidad_actual);
 
+    // Construye el mensaje de introducción con los detalles del secuaz y las localidades
     std::ostringstream oss;
     oss << "Mensaje Urgente de ACME: El secuaz " << secuaz.getNombre()
         << " ha sido visto en " << localidad_objetivo.getNombre()
         << ". Tu misión es capturarlo para interrogarlo lo antes posible.\n"
         << "Actualmente estás en " << localidad_actual.getNombre() << ". ¡Buena suerte, detective!";
 
+    // Configura el mensaje completo y el efecto de tipeo
     mensaje_completo = oss.str();
     mensaje_actual.clear();
     indice_tipeo = 0;
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &GameWindow::efectoTipeo), 50);
 
+    // Actualiza la interfaz con la imagen y el nombre del secuaz
     actualizarSecuazLabel(secuaz);
 }
+
 
 
 bool GameWindow::efectoTipeo() {
