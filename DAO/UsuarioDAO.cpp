@@ -36,7 +36,7 @@ bool UsuarioDAO::registrarUsuario(const std::string& nombre, const std::string& 
     return true;
 }
 std::optional<Usuario> UsuarioDAO::autenticarUsuario(const std::string& nombre, const std::string& apellido, const std::string& contrasena) {
-    const std::string sql = "SELECT id, nombre, apellido, rango FROM usuarios WHERE nombre = ? AND apellido = ? AND contrasena = ?;";
+    const std::string sql = "SELECT id, nombre, apellido, rango, capturas FROM usuarios WHERE nombre = ? AND apellido = ? AND contrasena = ?;";
     sqlite3_stmt* stmt;
     sqlite3* db = dbHandler.getDb();
 
@@ -56,19 +56,25 @@ std::optional<Usuario> UsuarioDAO::autenticarUsuario(const std::string& nombre, 
         const char* nombreResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         const char* apellidoResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         const char* rangoResultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        int capturas = sqlite3_column_int(stmt, 4);
 
-        // Verificación de nulos antes de construcción de std::string
         std::string nombreUsuario = nombreResultado ? nombreResultado : "";
         std::string apellidoUsuario = apellidoResultado ? apellidoResultado : "";
-        std::string rangoUsuario = rangoResultado ? rangoResultado : "No asignado";  // Asegura un valor por defecto si rango es nulo
+        std::string rangoNombre = rangoResultado ? rangoResultado : "Junior"; // Valor por defecto si rango es nulo
 
-        usuario = Usuario(id, nombreUsuario, apellidoUsuario, rangoUsuario);
+        // Crear el objeto Rango
+        Rango rango(rangoNombre);
+
+        // Crear el objeto Usuario con el rango adecuado
+        usuario = Usuario(id, nombreUsuario, apellidoUsuario, rango, capturas);
     } else {
         std::cerr << "Usuario no encontrado o credenciales incorrectas." << std::endl;
     }
+
     sqlite3_finalize(stmt);
     return usuario;
 }
+
 
 
 bool UsuarioDAO::actualizarRangoUsuario(int idUsuario, const std::string& nuevoRango) {

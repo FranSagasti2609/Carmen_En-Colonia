@@ -8,6 +8,7 @@ class Detective {
 public:
     // Constructor para inicializar con un número de movimientos
     explicit Detective(int movimientos_iniciales);
+    explicit Detective(const Rango& rangoInicial) : rango_(rangoInicial) {}
 
     // Constructor default
     Detective();

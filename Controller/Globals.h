@@ -5,4 +5,5 @@
 
 extern bool is_logged_in;  // Declaración de la variable global
 
+
 #endif //GLOBALS_H

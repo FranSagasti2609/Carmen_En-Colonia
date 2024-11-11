@@ -18,7 +18,7 @@ std::string Rango::getNombre() const {
 std::string Rango::getImagePath() const {
     std::string basePath = "../Multimedia/";
 
-    if (nombre == "DETECTIVE JUNIOR") {
+    if (nombre == "Junior"|| nombre == "DETECTIVE JUNIOR") {
         return basePath + "DetectiveJunior.png";
     } else if (nombre == "Eficiente") {
         return basePath + "DetectiveEficiente.png";
@@ -33,7 +33,7 @@ std::string Rango::getImagePath() const {
 
 // Método para avanzar al siguiente rango en el orden
 void Rango::avanzarRango() {
-    if (nombre == "Junior") {
+    if (nombre == "Junior" || nombre == "DETECTIVE JUNIOR") {
         nombre = "Eficiente";
     } else if (nombre == "Eficiente") {
         nombre = "Experto";

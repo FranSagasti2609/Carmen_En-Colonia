@@ -7,6 +7,7 @@
 #include "../Models/Usuario.h"
 #include "../DAO/PistaDAO.h"
 #include "../DataBaseHandler.h"
+
 class GameController;
 class GameWindow : public Gtk::Window {
 public:
@@ -27,9 +28,10 @@ public:
 
     //metodos para iconos.
     void actualizarSecuazLabel(const Secuaz& secuaz);
-    void actualizarRangoLabel(const Rango& rango);
+    void actualizarRangoLabel(const Usuario& usuario);
 
     std::pair<Secuaz, Localidad> iniciarNuevoSecuaz();
+    void actualizarRangoYLabel(const Usuario& usuario);
 private:
     // Etiquetas y contenedores
     Gtk::Label* label_rango;
@@ -71,7 +73,7 @@ private:
     // Para gestionar el ID de secuaces a capturar
     int secuaz_id;
     int contador_racha = 0;  // Contador de pistas correctas consecutivas
-
+    bool mostradoMensajeSenior = false;
 };
 
 #endif // GAME_WINDOW_HPP

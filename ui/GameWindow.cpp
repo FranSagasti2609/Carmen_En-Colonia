@@ -3,10 +3,11 @@
 #include <iostream>
 #include <random>
 #include <gtkmm/messagedialog.h>
+
+#include "../Controller/Globals.h"
 #include "../Models/Rango.h"
 #include "../Models/Secuaz.h"
 
-// Constructor de GameWindow
 // Constructor de GameWindow
 GameWindow::GameWindow(const std::shared_ptr<GameController>& game_controller, std::shared_ptr<DatabaseHandler> db_handler)
     : controller(game_controller), pistaDAO(*db_handler) {
@@ -58,9 +59,15 @@ GameWindow::GameWindow(const std::shared_ptr<GameController>& game_controller, s
 
     mostrarIntroduccion();
     iniciarJuego();
+
 }
 
 void GameWindow::actualizarLabelRango(const Usuario& usuario) {
+
+    if (usuario.getRango().getNombre() == "Senior") {
+        // Si el rango ya es Senior, no se actualiza el label para evitar cambios
+        return;
+    }
     std::string rango = usuario.getRango().getNombre();
     std::string rangoText = "Detective: " + usuario.getNombre() + " | Rango: " + rango;
     label_rango->set_text(rangoText);
@@ -95,10 +102,17 @@ void GameWindow::mostrarIntroduccion() {
 
     // Construye el mensaje de introducción con los detalles del secuaz y las localidades
     std::ostringstream oss;
-    oss << "Mensaje Urgente de ACME: El secuaz " << secuaz.getNombre()
-        << " ha sido visto en " << localidad_objetivo.getNombre()
-        << ". Tu misión es capturarlo para interrogarlo lo antes posible.\n"
-        << "Actualmente estás en " << localidad_actual.getNombre() << ". ¡Buena suerte, detective!";
+    if (secuaz.getNombre() == "Carmen San Diego") {
+        oss << "Mensaje Urgente de ACME: Has rastreado a la villana Carmen Sandiego, ha sido vista en "
+            << localidad_objetivo.getNombre()
+            << ". Tu misión es capturarla para derrocar esta liga de villanos.\n"
+            << "Actualmente estás en " << localidad_actual.getNombre() << ". ¡Buena suerte, detective!";
+    } else {
+        oss << "Mensaje Urgente de ACME: El secuaz " << secuaz.getNombre()
+            << " ha sido visto en " << localidad_objetivo.getNombre()
+            << ". Tu misión es capturarlo para interrogarlo lo antes posible.\n"
+            << "Actualmente estás en " << localidad_actual.getNombre() << ". ¡Buena suerte, detective!";
+    }
 
     // Configura el mensaje completo y el efecto de tipeo
     mensaje_completo = oss.str();
@@ -109,7 +123,6 @@ void GameWindow::mostrarIntroduccion() {
     // Actualiza la interfaz con la imagen y el nombre del secuaz
     actualizarSecuazLabel(secuaz);
 }
-
 
 
 bool GameWindow::efectoTipeo() {
@@ -162,19 +175,46 @@ void GameWindow::seleccionarPista(int indice) {
             contador_racha++;  // Incrementa el contador de aciertos
 
             // Muestra mensaje de pista correcta
-            dialog = new Gtk::MessageDialog(*this, "¡Pista Correcta!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK,true);
+            dialog = new Gtk::MessageDialog(*this, "¡Pista Correcta!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
             dialog->signal_response().connect([this, dialog](int) {
                 dialog->hide();
                 delete dialog;
 
                 // Verifica si se alcanzaron 3 aciertos
-                if (contador_racha == 3) {
+                if (contador_racha == 1) {
                     controller->capturarSecuazActual();  // Captura el secuaz actual
                     contador_racha = 0;  // Reinicia la racha
 
                     // Verifica si todos los secuaces han sido capturados
                     if (controller->todosLosSecuacesCapturados()) {
                         mostrarDialogoTodosCapturados();
+
+                        // Asigna a Carmen Sandiego como el secuaz final si el jugador tiene el rango necesario
+                        if (controller->obtenerUsuario().getRango().getNombre() == "Senior") {
+                            auto [nuevoSecuaz, nuevaLocalidad] = controller->iniciarNuevoSecuaz();
+                            actualizarSecuazLabel(nuevoSecuaz);  // Actualiza la interfaz con Carmen Sandiego
+                            localidad_objetivo = nuevaLocalidad;
+                            mostrarIntroduccion();
+
+                            // Finaliza el juego después de capturar a Carmen Sandiego
+                            if (nuevoSecuaz.getNombre() == "Carmen San Diego") {
+                                controller->finalizarJuego(this);
+                                return;
+                            }
+
+                        } else {
+                            // Si no tiene el rango "Senior", muestra un mensaje y finaliza el juego
+                            Gtk::MessageDialog* dialogFaltaRango = new Gtk::MessageDialog(
+                                *this, "¡Todos los secuaces han sido capturados!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
+                            dialogFaltaRango->set_secondary_text("Detective, necesitas alcanzar el rango 'Senior' para intentar capturar a Carmen Sandiego.");
+                            dialogFaltaRango->signal_response().connect([dialogFaltaRango, this](int) {
+                                dialogFaltaRango->hide();
+                                delete dialogFaltaRango;
+                                controller->finalizarJuego(this);  // Finaliza el juego después de cerrar el diálogo
+                            });
+                            dialogFaltaRango->show();
+                            return;
+                        }
                     } else {
                         // Selecciona un nuevo secuaz y una nueva localidad
                         auto [nuevoSecuaz, nuevaLocalidad] = controller->iniciarNuevoSecuaz();
@@ -183,12 +223,16 @@ void GameWindow::seleccionarPista(int indice) {
                         mostrarIntroduccion();
                     }
 
-                    // Actualiza el rango del detective solo si aún no es "Senior"
+                    // Actualiza el rango del detective si aún no es "Senior"
                     if (controller->obtenerRangoDetective().getNombre() != "Senior") {
                         controller->actualizarRango();
-                        actualizarRangoLabel(controller->obtenerRangoDetective());
-                        mostrarDialogoRango(controller->obtenerRangoDetective().getNombre());
-                    }
+                        actualizarRangoYLabel(controller->obtenerUsuario());  // Actualiza rango y etiqueta solo si no es "Senior"
+
+                            // Verifica nuevamente si el rango sigue siendo distinto de "Senior" después de la actualización
+                        if (controller->obtenerRangoDetective().getNombre() != "Senior") {
+                               mostrarDialogoRango(controller->obtenerRangoDetective().getNombre());
+                         }
+                        }
                 } else {
                     // Si no se alcanzaron 3 aciertos, actualiza solo la localidad sin cambiar el secuaz
                     localidad_objetivo = controller->obtenerLocalidadAleatoria();
@@ -217,6 +261,7 @@ void GameWindow::seleccionarPista(int indice) {
         std::cerr << "Índice de pista no válido." << std::endl;
     }
 }
+
 
 void GameWindow::mostrarPistas(const std::vector<Pista>& pistas) {
     limpiarContenedor(vbox_pistas);
@@ -261,23 +306,29 @@ void GameWindow::actualizarIntentos() {
 }
 
 void GameWindow::mostrarDialogoRango(const std::string& nuevoRango) {
-    std::string titulo = "¡Rango Aumentado!";
-    std::string mensaje;
-
     if (nuevoRango == "Senior") {
-        mensaje = "¡Felicidades! Ahora eres un detective Senior. Puedes intentar capturar a Carmen San Diego.";
-        // Aquí puedes también llamar a otras funciones que manejen lógica específica para cuando se alcanza el rango Senior.
+        // Solo muestra el diálogo una vez, no cada vez que el juego lo llama en cada captura
+            std::string mensaje = "¡Felicidades! Ahora eres un detective Senior. Puedes intentar capturar a Carmen San Diego.";
+            Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Rango Aumentado!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
+            dialog->set_secondary_text(mensaje);
+            dialog->signal_response().connect([dialog](int) {
+                dialog->hide();
+                delete dialog;
+            });
+            dialog->show();
     } else {
-        mensaje = "¡Felicidades! Ahora eres " + nuevoRango + ".";
+        // Muestra el mensaje estándar para rangos diferentes a "Senior"
+        std::string mensaje = "¡Felicidades! Ahora eres " + nuevoRango + ".";
+        Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Rango Aumentado!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
+        dialog->set_secondary_text(mensaje);
+        dialog->signal_response().connect([dialog](int) {
+            dialog->hide();
+            delete dialog;
+        });
+        dialog->show();
     }
-    Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, titulo, false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
-    dialog->set_secondary_text(mensaje);
-    dialog->signal_response().connect([dialog](int) {
-        dialog->hide();
-        delete dialog;
-    });
-    dialog->show();
 }
+
 
 void GameWindow::mostrarDialogoTodosCapturados() {
     Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this, "¡Todos los secuaces han sido capturados!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
@@ -295,11 +346,32 @@ void GameWindow::actualizarSecuazLabel(const Secuaz& secuaz) {
     image_secuaz->set(pixbuf->scale_simple(150, 150, Gdk::InterpType::BILINEAR));
 }
 
-void GameWindow::actualizarRangoLabel(const Rango& rango) {
-    label_rango->set_text("Rango: " + rango.getNombre());
+void GameWindow::actualizarRangoYLabel(const Usuario& usuario) {
+    std::string rango_actual = label_rango->get_text();  // Texto actual del rango en la interfaz
 
-    // Cargar y escalar la imagen del rango
-    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(rango.getImagePath());
+    if (usuario.getRango().getNombre() == "Senior" && rango_actual.find("Senior") != std::string::npos) {
+        return;  // Evita actualizaciones si ya se alcanzó "Senior" previamente
+    }
+
+    // Actualiza el texto y la imagen de rango
+    std::string rangoTexto = "Rango: " + usuario.getRango().getNombre();
+    label_rango->set_text(rangoTexto);
+
+    // Actualiza la imagen del rango
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(usuario.getRango().getImagePath());
     image_rango->set(pixbuf->scale_simple(150, 150, Gdk::InterpType::BILINEAR));
+
+    // Muestra una ventana de diálogo solo si se alcanza "Senior" por primera vez
+    if (usuario.getRango().getNombre() == "Senior" && rango_actual.find("Senior") == std::string::npos) {
+        Gtk::MessageDialog* dialog = new Gtk::MessageDialog(
+            *this, "¡Rango Máximo Alcanzado!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
+        dialog->set_secondary_text("¡Felicidades! Ahora eres un detective Senior y puedes intentar capturar a Carmen Sandiego.");
+        dialog->signal_response().connect([dialog](int) {
+            dialog->hide();
+            delete dialog;
+        });
+        dialog->show();
+    }
 }
+
 

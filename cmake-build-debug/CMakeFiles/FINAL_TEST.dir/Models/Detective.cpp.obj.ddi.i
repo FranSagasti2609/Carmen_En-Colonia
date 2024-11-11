@@ -41525,6 +41525,7 @@ class Detective {
 public:
 
     explicit Detective(int movimientos_iniciales);
+    explicit Detective(const Rango& rangoInicial) : rango_(rangoInicial) {}
 
 
     Detective();

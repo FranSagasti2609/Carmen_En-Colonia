@@ -32141,8 +32141,13 @@ private:
 public:
 
     Usuario() : id(0), capturas(0), rango("Junior") {}
+
     Usuario(int id, const std::string& nombre, const std::string& apellido, int capturas)
        : id(id), nombre(nombre), apellido(apellido), capturas(capturas) {}
+
+
+    Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango, int capturas = 0)
+        : id(id), nombre(nombre), apellido(apellido), rango(rango), capturas(capturas) {}
 
     Usuario(int id, const std::string& nombre, const std::string& apellido);
     Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango);

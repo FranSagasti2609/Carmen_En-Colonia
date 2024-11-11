@@ -17,8 +17,13 @@ private:
 public:
     // Constructor por defecto, inicializa el rango como un objeto Rango
     Usuario() : id(0), capturas(0), rango("Junior") {} // Inicializa rango en "Junior"
+
     Usuario(int id, const std::string& nombre, const std::string& apellido, int capturas)
        : id(id), nombre(nombre), apellido(apellido), capturas(capturas) {}
+
+    // Constructor para usuarios con rango ya existente
+    Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango, int capturas = 0)
+        : id(id), nombre(nombre), apellido(apellido), rango(rango), capturas(capturas) {}
 
     Usuario(int id, const std::string& nombre, const std::string& apellido);
     Usuario(int id, const std::string& nombre, const std::string& apellido, const Rango& rango);

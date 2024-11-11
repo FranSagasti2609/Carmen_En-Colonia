@@ -24,9 +24,12 @@ GameController::GameController(std::shared_ptr<UsuarioDAO> usuarioDAO,
 }
 
 void GameController::setUsuario(const Usuario& usuario) {
-    jugador = usuario;  // Solo asignación
-    std::cout << "Usuario asignado: " << usuario.getNombre() << std::endl;
+    // Asigna directamente el usuario autenticado
+    jugador = usuario;
+    detective = Detective(usuario.getRango());
+    std::cout << "Usuario asignado: " << jugador.getNombre() << " con rango " << jugador.getRango().getNombre() << std::endl;
 }
+
 
 Localidad GameController::obtenerLocalidadActual() const {
     return localidad_actual;
@@ -123,16 +126,18 @@ bool GameController::haySecuacesDisponibles() const {
 }
 
 void GameController::actualizarRango() {
-    if (detective.getRango().getNombre() == "Senior") {
+    if (jugador.getRango().getNombre() == "Senior") {
         std::cout << "El rango ya es Senior. No se realizarán más actualizaciones de rango." << std::endl;
         return;
     }
-    detective.avanzarRango();
 
-    if (!usuarioDAO->actualizarRangoUsuario(jugador.getId(), detective.getRango().getNombre())) {
+    jugador.avanzarRango();
+    detective.avanzarRango();  // Avanza el rango del detective también para mantenerlos sincronizados
+
+    if (!usuarioDAO->actualizarRangoUsuario(jugador.getId(), jugador.getRango().getNombre())) {
         std::cerr << "Error al actualizar el rango del usuario en la base de datos." << std::endl;
     } else {
-        std::cout << "Rango actualizado en la base de datos a: " << detective.getRango().getNombre() << std::endl;
+        std::cout << "Rango actualizado en la base de datos a: " << jugador.getRango().getNombre() << std::endl;
     }
 }
 
@@ -164,7 +169,21 @@ void GameController::capturarSecuazActual() {
 }
 
 std::pair<Secuaz, Localidad> GameController::iniciarNuevoSecuaz() {
-    secuaz_actual = obtenerSecuazAleatorio();
+    // Verifica si todos los secuaces disponibles excepto Carmen han sido capturados
+    if (todosLosSecuacesCapturados()) {
+        Secuaz carmen = secuazDAO->obtenerSecuazPorNombre("Carmen San Diego");
+        if (!carmen.isCapturado()) {
+            secuaz_actual = carmen;
+        } else {
+            std::cerr << "Error: Carmen Sandiego ya ha sido capturada." << std::endl;
+        }
+    } else {
+        // Si aún quedan secuaces sin capturar, obtiene uno aleatorio
+        secuaz_actual = obtenerSecuazAleatorio();
+    }
+
+    // Asigna una nueva localidad aleatoria para el secuaz actual
     localidad_objetivo = obtenerLocalidadAleatoria();
     return {secuaz_actual, localidad_objetivo};
 }
+
