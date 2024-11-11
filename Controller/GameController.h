@@ -40,7 +40,8 @@ public:
 
     std::pair<Secuaz, Localidad> iniciarNuevoSecuaz() ;
     Secuaz obtenerSecuazActual();
-    void capturarSecuazActual();
+    void capturarSecuazActual(GameWindow *gameWindow);
+    void ganarJuego(GameWindow *gameWindow);
 
 private:
     Usuario jugador;

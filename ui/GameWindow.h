@@ -74,6 +74,7 @@ private:
     int secuaz_id;
     int contador_racha = 0;  // Contador de pistas correctas consecutivas
     bool mostradoMensajeSenior = false;
+    int contador_aciertos_totales = 0;
 };
 
 #endif // GAME_WINDOW_HPP

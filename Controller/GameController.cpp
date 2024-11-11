@@ -162,11 +162,21 @@ Secuaz GameController::obtenerSecuazActual() {
     return secuaz_actual;
 }
 
-void GameController::capturarSecuazActual() {
+void GameController::capturarSecuazActual(GameWindow *gameWindow) {
+    // Marca al secuaz actual como capturado
     secuaces_capturados.insert(secuaz_actual.getId());
     usuarioDAO->incrementarCapturas(jugador.getId());
-    secuaz_actual = obtenerSecuazAleatorio();
+
+    // Verifica si el secuaz capturado es Carmen Sandiego
+    if (secuaz_actual.getNombre() == "Carmen San Diego") {
+        // Llama al método ganarJuego para mostrar la ventana de victoria y finalizar el juego
+        ganarJuego(gameWindow);
+    } else {
+        // Asigna un nuevo secuaz aleatorio si no es Carmen
+        secuaz_actual = obtenerSecuazAleatorio();
+    }
 }
+
 
 std::pair<Secuaz, Localidad> GameController::iniciarNuevoSecuaz() {
     // Verifica si todos los secuaces disponibles excepto Carmen han sido capturados
@@ -187,3 +197,26 @@ std::pair<Secuaz, Localidad> GameController::iniciarNuevoSecuaz() {
     return {secuaz_actual, localidad_objetivo};
 }
 
+//metodo para gestioanr victoria
+void GameController::ganarJuego(GameWindow *gameWindow) {
+    // Crear un diálogo para mostrar la medalla
+    auto* dialog = new Gtk::MessageDialog(*gameWindow, "¡Felicidades!", true, Gtk::MessageType::OTHER, Gtk::ButtonsType::CLOSE, true);
+    dialog->set_title("Juego Ganado");
+
+    // Crear la imagen de la medalla final y añadirla al diálogo
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file("../Multimedia/Medallafinal.png");
+    Gtk::Image* image_medalla = Gtk::manage(new Gtk::Image(pixbuf->scale_simple(500, 500, Gdk::InterpType::HYPER)));
+
+    dialog->get_content_area()->append(*image_medalla);
+    dialog->set_secondary_text("Has atrapado a Carmen Sandiego. ¡Eres un detective legendario!");
+
+    // Conectar la señal para cerrar el juego cuando el usuario cierre el diálogo
+    dialog->signal_response().connect([dialog, gameWindow](int) {
+        dialog->hide();
+        delete dialog;
+        gameWindow->close();
+    });
+
+    // Mostrar el diálogo con la imagen de la medalla
+    dialog->show();
+}

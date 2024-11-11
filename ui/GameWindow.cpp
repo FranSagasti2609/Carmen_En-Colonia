@@ -172,7 +172,8 @@ void GameWindow::seleccionarPista(int indice) {
 
         // Verifica si la pista seleccionada es correcta
         if (pistas_seleccionadas[indice].getEsCorrecta()) {
-            contador_racha++;  // Incrementa el contador de aciertos
+            contador_aciertos_totales++;  // Incrementa el total de aciertos
+            contador_racha++;  // Incrementa el contador de racha
 
             // Muestra mensaje de pista correcta
             dialog = new Gtk::MessageDialog(*this, "¡Pista Correcta!", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK, true);
@@ -180,10 +181,11 @@ void GameWindow::seleccionarPista(int indice) {
                 dialog->hide();
                 delete dialog;
 
-                // Verifica si se alcanzaron 3 aciertos
-                if (contador_racha == 1) {
-                    controller->capturarSecuazActual();  // Captura el secuaz actual
-                    contador_racha = 0;  // Reinicia la racha
+                // Captura el secuaz si se han acumulado 3 respuestas correctas totales (no consecutivas)
+                if (contador_aciertos_totales >= 3) {
+                    controller->capturarSecuazActual(this);  // Captura el secuaz actual
+                    contador_aciertos_totales = 0;  // Reinicia el contador de aciertos totales
+                    
 
                     // Verifica si todos los secuaces han sido capturados
                     if (controller->todosLosSecuacesCapturados()) {
@@ -195,12 +197,7 @@ void GameWindow::seleccionarPista(int indice) {
                             actualizarSecuazLabel(nuevoSecuaz);  // Actualiza la interfaz con Carmen Sandiego
                             localidad_objetivo = nuevaLocalidad;
                             mostrarIntroduccion();
-
-                            // Finaliza el juego después de capturar a Carmen Sandiego
-                            if (nuevoSecuaz.getNombre() == "Carmen San Diego") {
-                                controller->finalizarJuego(this);
-                                return;
-                            }
+                            //cuando carmean sea capturada cierro el juego
 
                         } else {
                             // Si no tiene el rango "Senior", muestra un mensaje y finaliza el juego
@@ -223,25 +220,21 @@ void GameWindow::seleccionarPista(int indice) {
                         mostrarIntroduccion();
                     }
 
-                    // Actualiza el rango del detective si aún no es "Senior"
-                    if (controller->obtenerRangoDetective().getNombre() != "Senior") {
+                    // Actualiza el rango del detective si aún no es "Senior" y se alcanzaron 3 respuestas consecutivas correctas
+                    if (contador_racha >= 3 && controller->obtenerRangoDetective().getNombre() != "Senior") {
                         controller->actualizarRango();
                         actualizarRangoYLabel(controller->obtenerUsuario());  // Actualiza rango y etiqueta solo si no es "Senior"
-
-                            // Verifica nuevamente si el rango sigue siendo distinto de "Senior" después de la actualización
-                        if (controller->obtenerRangoDetective().getNombre() != "Senior") {
-                               mostrarDialogoRango(controller->obtenerRangoDetective().getNombre());
-                         }
-                        }
+                        mostrarDialogoRango(controller->obtenerRangoDetective().getNombre());
+                    }
                 } else {
-                    // Si no se alcanzaron 3 aciertos, actualiza solo la localidad sin cambiar el secuaz
+                    // Si no se capturó el secuaz, se genera una nueva pista en una localidad aleatoria
                     localidad_objetivo = controller->obtenerLocalidadAleatoria();
                     mostrarIntroduccion();
                 }
             });
             dialog->show();
         } else {
-            // Si la pista seleccionada es incorrecta, reinicia la racha
+            // Si la pista seleccionada es incorrecta, reinicia la racha pero no el contador de aciertos totales
             contador_racha = 0;
             dialog = new Gtk::MessageDialog(*this, "Pista Incorrecta. Inténtalo nuevamente.", false, Gtk::MessageType::INFO, Gtk::ButtonsType::OK);
             intentos_actuales--;  // Reduce los intentos restantes
@@ -261,8 +254,6 @@ void GameWindow::seleccionarPista(int indice) {
         std::cerr << "Índice de pista no válido." << std::endl;
     }
 }
-
-
 void GameWindow::mostrarPistas(const std::vector<Pista>& pistas) {
     limpiarContenedor(vbox_pistas);
 
